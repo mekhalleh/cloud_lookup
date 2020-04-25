@@ -159,9 +159,9 @@ class MetasploitModule < Msf::Auxiliary
       print_error("HTTP Connection Failed")
     end
 
-    unless(results)
+    unless results
       print_error('server_response_error')
-      return false
+      return []
     end
 
     records = ActiveSupport::JSON.decode(results.body)
@@ -221,11 +221,6 @@ class MetasploitModule < Msf::Auxiliary
       end
     end
 
-    if ar_ips.empty?
-      print_bad('No enumerated domain IP(s) founds.')
-      return false
-    end
-
     ar_ips
   end
 
@@ -273,7 +268,7 @@ class MetasploitModule < Msf::Auxiliary
       cli.close
     rescue ::Rex::ConnectionError, Errno::ECONNREFUSED, Errno::ETIMEDOUT
       print_error('HTTP connection failed to ViewDNS.info website.')
-      return false
+      return []
     end
 
     html = response.get_html_document
@@ -293,7 +288,7 @@ class MetasploitModule < Msf::Auxiliary
 
     if ar_ips.nil?
       print_bad('No domain IP(s) history founds.')
-      return false
+      return []
     end
 
     ar_ips
@@ -551,29 +546,29 @@ class MetasploitModule < Msf::Auxiliary
 
     # ViewDNS.info
     ip_records = grab_domain_ip_history(domain_name)
-    ip_list |= ip_records unless ip_records.eql? false
-    unless ip_records.eql? false
-      print_status(" * ViewDNS.info: #{ip_records.count.to_s} IP address(es) found.")
+    if ip_records && ip_records.length > 0
+      ip_list |= ip_records
     end
+    print_status(" * ViewDNS.info: #{ip_records.count.to_s} IP address(es) found.")
 
     # DNS Enumeration
-    if datastore['DNSENUM'].eql? true
+    if datastore['DNSENUM']
       ip_records = dns_enumeration(domain_name, datastore['THREADS'])
-      ip_list |= ip_records unless ip_records.eql? false
-      unless ip_records.eql? false
-        print_status(" * DNS Enumeration: #{ip_records.count.to_s} IP address(es) found.")
+      if ip_records && ip_records.length > 0
+        ip_list |= ip_records
       end
+      print_status(" * DNS Enumeration: #{ip_records.count.to_s} IP address(es) found.")
     end
 
     # Censys search
     if [datastore['CENSYS_UID'], datastore['CENSYS_SECRET']].none?(&:nil?)
       ip_records = censys_search(domain_name, 'ipv4', datastore['CENSYS_UID'], datastore['CENSYS_SECRET'])
-      ip_list |= ip_records unless ip_records.eql? false
-      unless ip_records.eql? false
-        print_status(" * Censys IPv4: #{ip_records.count.to_s} IP address(es) found.")
-        print_status
+      if ip_records && ip_records.length > 0
+        ip_list |= ip_records
       end
+      print_status(" * Censys IPv4: #{ip_records.count.to_s} IP address(es) found.")
     end
+    print_status
 
     if ip_list.empty?
       print_bad('No IP address found :-(')
