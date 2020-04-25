@@ -362,7 +362,7 @@ class MetasploitModule < Msf::Auxiliary
     vprint_status(" * Trying: #{proto}://#{ip}:#{port}/")
     response = http_get_request_raw(ip, port, ssl, datastore['HOSTNAME'], datastore['URIPATH'])
     if response
-      return false if detect_solution(response, @my_action.name)
+      return false if detect_signature(response)
 
       if response.code.eql? 200
         html = response.get_html_document
@@ -395,26 +395,22 @@ class MetasploitModule < Msf::Auxiliary
     return false
   end
 
-  def detect_solution(data, name = nil)
-    if name.nil?
-      actions.each do | my_action |
-        unless my_action.name == 'Automatic'
-          my_action['Signatures'].each do | signature |
-            return my_action if data.headers.to_s.downcase.include?(signature.downcase)
-          end
-        end
-      end
-    else
-      actions.each do | my_action |
-        if my_action.name == name
-          my_action['Signatures'].each do | signature |
-            return true if data.headers.to_s.downcase.include?(signature.downcase)
-          end
+  def detect_action(data)
+    actions.each do | my_action |
+      if my_action.name != 'Automatic'
+        my_action['Signatures'].each do | signature |
+          return my_action if data.headers.to_s.downcase.include?(signature.downcase)
         end
       end
     end
-
     return nil
+  end
+
+  def detect_signature(data)
+    @my_action['Signatures'].each do | signature |
+      return true if data.headers.to_s.downcase.include?(signature.downcase)
+    end
+    return false
   end
 
   def get_arvancloud_ips
@@ -515,7 +511,7 @@ class MetasploitModule < Msf::Auxiliary
   end
 
   def pick_action
-    return action unless action.name.eql? 'Automatic'
+    return action unless action.name.eql? 'Automatic' # TODO
 
     response = http_get_request_raw(
       datastore['HOSTNAME'],
@@ -524,9 +520,9 @@ class MetasploitModule < Msf::Auxiliary
       nil,
       datastore['URIPATH']
     )
-    return nil if response.nil?
+    return nil unless response
 
-    return detect_solution(response)
+    detect_action(response)
   end
 
   # ------------------------------------------------------------------------- #
