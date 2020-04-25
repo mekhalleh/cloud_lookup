@@ -84,6 +84,13 @@ class MetasploitModule < Msf::Auxiliary
             'Signatures' => ['x-nf-request-id:']
           }
         ],
+        ['NoWAFBypass',
+          {
+            'Description' => 'Do NOT check any bypass method',
+            'Signatures' => []
+
+          }
+        ],
         ['Stackpath Fireblade',
           {
             'Description' => 'Enterprise Website Security & DDoS Protection',
@@ -120,6 +127,7 @@ class MetasploitModule < Msf::Auxiliary
     ])
 
     register_advanced_options([
+      OptBool.new('ALLOW_NOWAF', [true, 'Automatically switch to NoWAFBypass when detection fails with the Automatic action', false]),
       OptBool.new('DNSENUM', [true, 'Set DNS enumeration as optional', true]),
       OptAddress.new('NS', [false, 'Specify the nameserver to use for queries (default is system DNS)']),
       OptBool.new('REPORT_LEAKS', [true, 'Set to write leaked ip addresses in notes', false]),
@@ -530,8 +538,13 @@ class MetasploitModule < Msf::Auxiliary
   def run
     @my_action = pick_action
     if @my_action.nil?
-      print_error("Couldn't determine the action automatically.")
-      return
+      unless datastore['ALLOW_NOWAF']
+        print_error("Couldn't determine the action automatically.")
+        return
+      end
+      actions.each do | my_action |
+        @my_action = my_action if my_action.name == 'NoWAFBypass'
+      end
     end
     vprint_status("Selected action: #{@my_action.name}")
 
