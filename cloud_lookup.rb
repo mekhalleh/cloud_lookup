@@ -48,6 +48,12 @@ class MetasploitModule < Msf::Auxiliary
             'Signatures' => ['server: ArvanCloud']
           }
         ],
+        ['AzureCDN',
+          {
+            'Description' => 'Microsoft Azure Content Delivery Network (CDN) is a global content distribution network solution for delivering high bandwidth content',
+            'Signatures' => []
+          }
+        ],
         ['Envoy Proxy',
           {
             'Description' => 'An open source edge and service proxy, designed for Cloud-Native applications',
@@ -434,6 +440,48 @@ class MetasploitModule < Msf::Auxiliary
     response.get_html_document.text.split("\n")
   end
 
+  ## https://docs.microsoft.com/fr-fr/azure/cdn/cdn-pop-list-api
+  def get_azurecdn_ips
+    regions = {
+      'region' => 'asiaeast', 'region' => 'asiasoutheast', 'region' => 'australiaeast', 'region' => 'australiasoutheast', 'region' => 'canadacentral',
+      'region' => 'canadaeast', 'region' => 'chinaeast', 'region' => 'chinanorth', 'region' => 'europenorth', 'region' => 'europewest',
+      'region' => 'germanycentral', 'region' => 'germanyn', 'region' => 'germanynortheast', 'region' => 'indiacentral', 'region' => 'indiasouth',
+      'region' => 'indiawest', 'region' => 'japaneast', 'region' => 'japanwest', 'region' => 'brazilsouth', 'region' => 'koreasouth',
+      'region' => 'koreacentral', 'region' => 'ukwest', 'region' => 'uksouth', 'region' => 'uscentral', 'region' => 'useast',
+      'region' => 'useast2', 'region' => 'usnorth', 'region' => 'ussouth', 'region' => 'uswestcentral', 'region' => 'uswest',
+      'region' => 'uswest2'
+    }
+
+    params = regions
+    params = params.merge({
+      'complement' => 'on',
+      'outputformat' => 'list-cidr'
+    })
+
+    begin
+      cli = Rex::Proto::Http::Client.new('azurerange.azurewebsites.net', 443, {}, true)
+      cli.connect
+
+      response = cli.request_cgi(
+        'method' => 'GET',
+        'uri' => '/Download/',
+        'agent' => datastore['USERAGENT'],
+        'vars_get' => params
+      )
+      results = cli.send_recv(response)
+
+    rescue ::Rex::ConnectionError, Errno::ECONNREFUSED, Errno::ETIMEDOUT
+      print_error("HTTP Connection Failed")
+    end
+
+    unless(results)
+      print_error('server_response_error')
+      return false
+    end
+
+    results.get_html_document.css('p').text.split("\r\n")
+  end
+
   def get_cloudflare_ips
     response = http_get_request_raw(
       'www.cloudflare.com',
@@ -588,6 +636,8 @@ class MetasploitModule < Msf::Auxiliary
     case @my_action.name
     when /ArvanCloud/
       ip_blacklist = get_arvancloud_ips
+    when /AzureCDN/
+      ip_blacklist = get_azurecdn_ips
     when /CloudFlare/
       ip_blacklist = get_cloudflare_ips
     when /CloudFront/
@@ -663,14 +713,13 @@ class MetasploitModule < Msf::Auxiliary
     # Loop for each uniq IP candidate to check bypass
     ret_val = false
     records.uniq.each do | ip |
-      found = check_bypass(
+      ret_val ||= check_bypass(
         fingerprint,
         ip
       )
-      ret_val = true if found.eql? true
     end
 
-    unless ret_val.eql? true
+    unless ret_val
       print_bad('No direct-connect IP address found :-(')
     end
   end

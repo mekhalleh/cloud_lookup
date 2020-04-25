@@ -65,6 +65,10 @@ that uses the following:
 
 ## Advanced options
 
+  **ALLOW_NOWAF**
+
+  Automatically switch to NoWAFBypass when detection fails with the Automatic action. Default: false
+
   **DNSENUM**
 
   Set DNS enumeration as optional. Default: true
