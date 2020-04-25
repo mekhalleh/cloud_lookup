@@ -134,7 +134,7 @@ class MetasploitModule < Msf::Auxiliary
   ## auxiliary/gather/censys_search.rb
   def basic_auth_header(username, password)
     auth_str = username.to_s + ":" + password.to_s
-    return "Basic " + Rex::Text.encode_base64(auth_str)
+    "Basic " + Rex::Text.encode_base64(auth_str)
   end
 
   ## auxiliary/gather/censys_search.rb
@@ -167,7 +167,7 @@ class MetasploitModule < Msf::Auxiliary
     records = ActiveSupport::JSON.decode(results.body)
     results = records['results']
 
-    return parse_ipv4(results)
+    parse_ipv4(results)
   end
 
   def check_tcp_port(ip, port)
@@ -226,7 +226,7 @@ class MetasploitModule < Msf::Auxiliary
       return false
     end
 
-    return ar_ips
+    ar_ips
   end
 
   ## auxiliary/gather/enum_dns.rb
@@ -296,7 +296,7 @@ class MetasploitModule < Msf::Auxiliary
       return false
     end
 
-    return ar_ips
+    ar_ips
   end
 
   def http_get_request_raw(host, port, ssl, host_header = nil, uri)
@@ -321,7 +321,7 @@ class MetasploitModule < Msf::Auxiliary
     end
     return false if response.nil?
 
-    return response
+    response
   end
 
   ## auxiliary/gather/censys_search.rb
@@ -330,7 +330,7 @@ class MetasploitModule < Msf::Auxiliary
     records.each do | ipv4 |
       ip_list.push(ipv4['ip'])
     end
-    return ip_list
+    ip_list
   end
 
   ## auxiliary/gather/enum_dns.rb
@@ -348,21 +348,17 @@ class MetasploitModule < Msf::Auxiliary
   # ------------------------------------------------------------------------- #
 
   def check_bypass(fingerprint, ip)
-    ret_value = false
-
     # Check for "misconfigured" web server on TCP/80.
     if(check_tcp_port(ip, 80))
-      found = check_request(fingerprint, ip, 80, false)
+      ret_value ||= check_request(fingerprint, ip, 80, false)
     end
-    ret_value = true if found
 
     # Check for "misconfigured" web server on TCP/443.
     if(check_tcp_port(ip, 443))
-      found = check_request(fingerprint, ip, 443, true)
+      ret_value ||= check_request(fingerprint, ip, 443, true)
     end
-    ret_value = true if found
 
-    return ret_value
+    ret_value
   end
 
   def check_request(fingerprint, ip, port, ssl)
@@ -370,7 +366,7 @@ class MetasploitModule < Msf::Auxiliary
 
     vprint_status(" * Trying: #{proto}://#{ip}:#{port}/")
     response = http_get_request_raw(ip, port, ssl, datastore['HOSTNAME'], datastore['URIPATH'])
-    if response != false
+    if response
       return false if detect_solution(response, @my_action.name)
 
       if response.code.eql? 200
@@ -436,12 +432,7 @@ class MetasploitModule < Msf::Auxiliary
     )
     return false if response.nil?
 
-    ip_list  = []
-    response.get_html_document.text.split("\n").each do | ip |
-      ip_list.push(ip)
-    end
-
-    return ip_list
+    response.get_html_document.text.split("\n")
   end
 
   def get_cloudflare_ips
@@ -454,12 +445,7 @@ class MetasploitModule < Msf::Auxiliary
     )
     return false if response.nil?
 
-    ip_list  = []
-    response.get_html_document.css('p').text.split("\n").each do | ip |
-      ip_list.push(ip)
-    end
-
-    return ip_list
+    response.get_html_document.css('p').text.split("\n")
   end
 
   def get_cloudfront_ips
@@ -472,16 +458,10 @@ class MetasploitModule < Msf::Auxiliary
     )
     return false if response.nil?
 
-    ip_list = []
-    response.get_json_document['CLOUDFRONT_GLOBAL_IP_LIST'].each do | ip |
-      ip_list.push(ip.gsub('"', ''))
-    end
+    ip_list = response.get_json_document['CLOUDFRONT_GLOBAL_IP_LIST']
+    ip_list += response.get_json_document['CLOUDFRONT_REGIONAL_EDGE_IP_LIST']
 
-    response.get_json_document['CLOUDFRONT_REGIONAL_EDGE_IP_LIST'].each do | ip |
-      ip_list.push(ip.gsub('"', ''))
-    end
-
-    return ip_list
+    ip_list.map { | ip | ip.gsub('"', '') }
   end
 
   def get_fastly_ips
@@ -494,12 +474,7 @@ class MetasploitModule < Msf::Auxiliary
     )
     return false if response.nil?
 
-    ip_list = []
-    response.get_json_document['addresses'].each do | ip |
-      ip_list.push(ip.gsub('"', ''))
-    end
-
-    return ip_list
+    response.get_json_document['addresses'].map { | ip | ip.gsub('"', '') }
   end
 
   def get_incapsula_ips
@@ -523,12 +498,7 @@ class MetasploitModule < Msf::Auxiliary
       return false
     end
 
-    ip_list = []
-    results.get_json_document['ipRanges'].each do | ip |
-      ip_list.push(ip.gsub('"', ''))
-    end
-
-    return ip_list
+    results.get_json_document['ipRanges'].map { | ip | ip.gsub('"', '') }
   end
 
   def get_stackpath_ips
@@ -546,7 +516,7 @@ class MetasploitModule < Msf::Auxiliary
       ip_list.push(ip) if ip =~ /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))$/
     end
 
-    return ip_list
+    ip_list
   end
 
   def pick_action
@@ -569,7 +539,7 @@ class MetasploitModule < Msf::Auxiliary
   def run
     @my_action = pick_action
     if @my_action.nil?
-      print_error("Couldn't determine the action automaticaly.")
+      print_error("Couldn't determine the action automatically.")
       return
     end
     vprint_status("Selected action: #{@my_action.name}")
@@ -583,7 +553,7 @@ class MetasploitModule < Msf::Auxiliary
     ip_records = grab_domain_ip_history(domain_name)
     ip_list |= ip_records unless ip_records.eql? false
     unless ip_records.eql? false
-      print_status(" * ViewDNS.info: #{ip_records.count.to_s} IP address found(s).")
+      print_status(" * ViewDNS.info: #{ip_records.count.to_s} IP address(es) found.")
     end
 
     # DNS Enumeration
@@ -591,7 +561,7 @@ class MetasploitModule < Msf::Auxiliary
       ip_records = dns_enumeration(domain_name, datastore['THREADS'])
       ip_list |= ip_records unless ip_records.eql? false
       unless ip_records.eql? false
-        print_status(" * DNS Enumeration: #{ip_records.count.to_s} IP address found(s).")
+        print_status(" * DNS Enumeration: #{ip_records.count.to_s} IP address(es) found.")
       end
     end
 
@@ -600,7 +570,7 @@ class MetasploitModule < Msf::Auxiliary
       ip_records = censys_search(domain_name, 'ipv4', datastore['CENSYS_UID'], datastore['CENSYS_SECRET'])
       ip_list |= ip_records unless ip_records.eql? false
       unless ip_records.eql? false
-        print_status(" * Censys IPv4: #{ip_records.count.to_s} IP address found(s).")
+        print_status(" * Censys IPv4: #{ip_records.count.to_s} IP address(es) found.")
         print_status
       end
     end
@@ -646,14 +616,12 @@ class MetasploitModule < Msf::Auxiliary
           end
         end
 
-        unless is_listed.eql? true
+        unless is_listed
           records << ip.to_s
         end
       end
     else
-      ip_list.uniq.each do | ip |
-        records << ip.to_s
-      end
+      records.concat(ip_list.uniq.map { | ip | ip.to_s })
     end
 
     if records.empty?
@@ -661,7 +629,7 @@ class MetasploitModule < Msf::Auxiliary
       return
     end
 
-    print_status(" * TOTAL: #{records.uniq.count.to_s} IP address found(s) after cleaning.")
+    print_status(" * TOTAL: #{records.uniq.count.to_s} IP address(es) found after cleaning.")
     print_status
 
     # Processing bypass...
