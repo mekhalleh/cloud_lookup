@@ -7,8 +7,8 @@ More precisely, this module uses multiple data sources (in order ViewDNS.info, D
 to collect assigned (or have been assigned) IP addresses from the targeted site or domain
 that uses the following:
   Amazon Cloudflare, Amazon CloudFront, ArvanCloud, Envoy Proxy, Fastly, Stackpath Fireblade,
-  Stackpath MaxCDN, Imperva Incapsula, InGen Security (BinarySec EasyWAF), KeyCDN, Netlify and
-  Sucuri.
+  Stackpath MaxCDN, Imperva Incapsula, InGen Security (BinarySec EasyWAF), KeyCDN, Microsoft AzureCDN,
+  Netlify and Sucuri.
 
 ## Verification Steps
 

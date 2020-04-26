@@ -4,15 +4,26 @@ This module can be useful if you need to test the security of your server and yo
 website behind a solution Cloud based. By discovering the origin IP address of the
 targeted host.
 
-More precisely, I use multiple data sources (in order ViewDNS.info, DNS enumeration and Censys)
+More precisely, this module uses multiple data sources (in order ViewDNS.info, DNS enumeration and Censys)
 to collect assigned (or have been assigned) IP addresses from the targeted site or domain
 that uses the following:
 
-- Amazon Cloudflare
-- Amazon CloudFront
-- Imperva Incapsula
-- InGen Security (BinarySec EasyWAF)
-- Sucuri
+  - Amazon Cloudflare
+  - Amazon CloudFront
+  - ArvanCloud
+  - Envoy Proxy
+  - Fastly
+  - Stackpath Fireblade,
+  - Stackpath MaxCDN
+  - Imperva Incapsula
+  - InGen Security (BinarySec EasyWAF)
+  - KeyCDN
+  - Netlify
+  - Sucuri
+
+You can now use the 'NoWAFBypass' action to retrieve all occurence of the websites without any detections methods.
+
+Of course this requires a manual check, but it is very useful ...
 
 ![alt text][module_info]
 
