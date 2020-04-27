@@ -25,6 +25,12 @@ You can now use the 'NoWAFBypass' action to retrieve all occurence of the websit
 
 Of course this requires a manual check, but it is very useful ...
 
+TODO:
+
+- [ ] Get [Stackpath IP addresses] for blacklist that and improve detection
+- [ ] Obtain [Microsoft AzureCloud IP addresses] directly from Microsoft rather than the current source
+- [ ] Grab/Parse SPF value from DNS query for extract IP addresses :)
+
 ![alt text][module_info]
 
 ![alt text][module_advanced]
@@ -51,3 +57,6 @@ In this case '**A leaked IP address was found**' is displayed but the bypass is 
 [module_advanced]: https://raw.githubusercontent.com/mekhalleh/cloud_lookup/master/pictures/02-demo.png "Module: advanced"
 [module_good]: https://raw.githubusercontent.com/mekhalleh/cloud_lookup/master/pictures/03-demo.png "Module: bypass is good"
 [module_leak]: https://raw.githubusercontent.com/mekhalleh/cloud_lookup/master/pictures/04-demo.png "Module: IP adress leak"
+
+[Stackpath IP addresses]: https://support.stackpath.com/hc/en-us/articles/360001486326-Using-the-API-to-Pull-StackPath-IP-Blocks
+[Microsoft AzureCloud IP addresses]: https://docs.microsoft.com/en-us/azure/cdn/cdn-pop-list-api
