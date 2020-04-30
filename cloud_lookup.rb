@@ -480,13 +480,15 @@ class MetasploitModule < Msf::Auxiliary
   # https://docs.microsoft.com/fr-fr/azure/cdn/cdn-pop-list-api
   def azurecdn_ips
     regions = {
-      'region' => 'asiaeast', 'region' => 'asiasoutheast', 'region' => 'australiaeast', 'region' => 'australiasoutheast', 'region' => 'canadacentral',
-      'region' => 'canadaeast', 'region' => 'chinaeast', 'region' => 'chinanorth', 'region' => 'europenorth', 'region' => 'europewest',
-      'region' => 'germanycentral', 'region' => 'germanyn', 'region' => 'germanynortheast', 'region' => 'indiacentral', 'region' => 'indiasouth',
-      'region' => 'indiawest', 'region' => 'japaneast', 'region' => 'japanwest', 'region' => 'brazilsouth', 'region' => 'koreasouth',
-      'region' => 'koreacentral', 'region' => 'ukwest', 'region' => 'uksouth', 'region' => 'uscentral', 'region' => 'useast',
-      'region' => 'useast2', 'region' => 'usnorth', 'region' => 'ussouth', 'region' => 'uswestcentral', 'region' => 'uswest',
-      'region' => 'uswest2'
+      'region' => [
+        'asiaeast', 'asiasoutheast', 'australiaeast', 'australiasoutheast', 'canadacentral',
+        'canadaeast', 'chinaeast', 'chinanorth', 'europenorth', 'europewest',
+        'germanycentral', 'germanyn', 'germanynortheast', 'indiacentral', 'indiasouth',
+        'indiawest', 'japaneast', 'japanwest', 'brazilsouth', 'koreasouth',
+        'koreacentral', 'ukwest', 'uksouth', 'uscentral', 'useast',
+        'useast2', 'usnorth', 'ussouth', 'uswestcentral', 'uswest',
+        'uswest2'
+      ]
     }
     params = regions.merge({
       'complement' => 'on',
